@@ -45,6 +45,6 @@ func (s *MailServer) SendMail(mail *Mail) error {
 		s.Auth,
 		s.Sender.Email,
 		mail.To,
-		[]byte(mail.GetStr()),
+		[]byte(mail.ToRFC822()),
 	)
 }
