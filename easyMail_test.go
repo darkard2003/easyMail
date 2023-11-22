@@ -65,3 +65,35 @@ func TestSendMailWithHtml(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestSendMailWithAttachment(t *testing.T) {
+	email := os.Getenv("TEST_EMAIL")
+	password := os.Getenv("TEST_EMAIL_PASSWORD")
+	recivers := os.Getenv("TEST_EMAIL_RECIVERS")
+
+	reciversList := strings.Split(recivers, ",")
+
+	t.Logf("Email: %s", email)
+
+	if email == "" || password == "" {
+		t.Error("Please set TEST_EMAIL and TEST_PASSWORD environment variables to run this test")
+	}
+
+	mserver := NewMailServer(email, password, GMAIL)
+
+	mail := NewMail(
+		email,
+		reciversList,
+		"Attachment Test",
+		"Noice to meet ya",
+		false,
+	)
+
+	mail.AddAttachment("testAttachment.md")
+
+	err := mserver.SendMail(mail)
+
+	if err != nil {
+		t.Error(err)
+	}
+}

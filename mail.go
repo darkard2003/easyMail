@@ -8,10 +8,11 @@ import (
 type Mail struct {
 	From    string
 	To      []string
-	Headers map[string]string
 	Subject string
 	Body    string
 	IsHtml  bool
+	Attachments []string
+	Headers map[string]string
 }
 
 func NewMail(
@@ -35,7 +36,12 @@ func (m *Mail) AddHeader(key string, value string) {
 	m.Headers[key] = value
 }
 
-func (m *Mail) ToRFC822() string {
+func (m *Mail) AddAttachment(path string) error {
+	m.Attachments = append(m.Attachments, path)
+	return nil
+}
+
+func (m *Mail) ToRFC822() (string, error) {
 	headers := make([]string, 0, len(m.Headers)+4)
 
 	// Add common headers
@@ -44,11 +50,6 @@ func (m *Mail) ToRFC822() string {
 	headers = append(headers, fmt.Sprintf("Subject: %s", m.Subject))
 
 	// Add Content-Type header based on IsHtml flag
-	if m.IsHtml {
-		headers = append(headers, "Content-Type: text/html; charset=\"UTF-8\"")
-	} else {
-		headers = append(headers, "Content-Type: text/plain; charset=\"UTF-8\"")
-	}
 
 	// Add custom headers
 	for k, v := range m.Headers {
@@ -59,5 +60,5 @@ func (m *Mail) ToRFC822() string {
 	headersStr := strings.Join(headers, "\r\n") + "\r\n\r\n"
 
 	// Return headers + body
-	return headersStr + m.Body
+	return headersStr + m.Body, nil
 }

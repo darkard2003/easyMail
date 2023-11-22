@@ -40,11 +40,16 @@ func NewMailServer(email, password, provider string) *MailServer {
 }
 
 func (s *MailServer) SendMail(mail *Mail) error {
+	str, err := mail.ToRFC822()
+
+	if err != nil {
+		return err
+	}
 	return smtp.SendMail(
 		s.Sender.getHost()+":587",
 		s.Auth,
 		s.Sender.Email,
 		mail.To,
-		[]byte(mail.ToRFC822()),
+		[]byte(str),
 	)
 }
