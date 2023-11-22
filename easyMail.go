@@ -24,11 +24,19 @@ func (s *MailSender) getAuth() smtp.Auth {
 	return smtp.PlainAuth("", s.Email, s.Password, s.getHost())
 }
 
-func NewMailServer(sender MailSender) *MailServer {
+func NewMailServerFromSender(sender MailSender) *MailServer {
 	return &MailServer{
 		Sender: sender,
 		Auth:   sender.getAuth(),
 	}
+}
+
+func NewMailServer(email, password, provider string) *MailServer {
+	return NewMailServerFromSender(MailSender{
+		Email:    email,
+		Password: password,
+		Provider: provider,
+	})
 }
 
 func (s *MailServer) SendMail(mail *Mail) error {
