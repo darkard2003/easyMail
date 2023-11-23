@@ -1,6 +1,8 @@
 package easyMail
 
-import "net/smtp"
+import (
+	"net/smtp"
+)
 
 type MailServer struct {
 	Sender MailSender
@@ -40,8 +42,7 @@ func NewMailServer(email, password, provider string) *MailServer {
 }
 
 func (s *MailServer) SendMail(mail *Mail) error {
-	str, err := mail.ToRFC822()
-
+	b, err := mail.Bytes()
 	if err != nil {
 		return err
 	}
@@ -50,6 +51,6 @@ func (s *MailServer) SendMail(mail *Mail) error {
 		s.Auth,
 		s.Sender.Email,
 		mail.To,
-		[]byte(str),
+		b,
 	)
 }

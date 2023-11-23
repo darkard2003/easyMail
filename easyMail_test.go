@@ -6,26 +6,40 @@ import (
 	"testing"
 )
 
-func TestSendMail(t *testing.T) {
-	email := os.Getenv("TEST_EMAIL")
+type testCreds struct {
+	email    string
+	password string
+	recivers []string
+}
+
+func getTestCreds() testCreds {
+	mail := os.Getenv("TEST_EMAIL")
 	password := os.Getenv("TEST_EMAIL_PASSWORD")
 	recivers := os.Getenv("TEST_EMAIL_RECIVERS")
 
-	reciversList := strings.Split(recivers, ",")
-
-	t.Logf("Email: %s", email)
-
-	if email == "" || password == "" {
-		t.Error("Please set TEST_EMAIL and TEST_PASSWORD environment variables to run this test")
+	if mail == "" || password == "" || recivers == "" {
+		panic("Please set TEST_EMAIL, TEST_PASSWORD and TEST_EMAIL_RECIVERS environment variables to run this test")
 	}
 
-	mserver := NewMailServer(email, password, GMAIL)
+	reciversList := strings.Split(recivers, ",")
+
+	return testCreds{
+		email:    mail,
+		password: password,
+		recivers: reciversList,
+	}
+}
+
+func TestSendMail(t *testing.T) {
+	creds := getTestCreds()
+
+	mserver := NewMailServer(creds.email, creds.password, GMAIL)
 
 	mail := NewMail(
-		email,
-		reciversList,
+		creds.email,
+		creds.recivers,
 		"Normal Test",
-		"Noice to meet ya",
+		"Nabajit gay, nabajit rohan er ta mukh e nay",
 		false,
 	)
 
@@ -37,25 +51,15 @@ func TestSendMail(t *testing.T) {
 }
 
 func TestSendMailWithHtml(t *testing.T) {
-	email := os.Getenv("TEST_EMAIL")
-	password := os.Getenv("TEST_EMAIL_PASSWORD")
-	recivers := os.Getenv("TEST_EMAIL_RECIVERS")
+	creds := getTestCreds()
 
-	reciversList := strings.Split(recivers, ",")
-
-	t.Logf("Email: %s", email)
-
-	if email == "" || password == "" {
-		t.Error("Please set TEST_EMAIL and TEST_PASSWORD environment variables to run this test")
-	}
-
-	mserver := NewMailServer(email, password, GMAIL)
+	mserver := NewMailServer(creds.email, creds.password, GMAIL)
 
 	mail := NewMail(
-		email,
-		reciversList,
+		"Kaushik",
+		creds.recivers,
 		"Html Test",
-		"<h1>Hello</h1><p>Noice to meet ya</p>",
+		"<h1>Hello</h1><p>Nabajit is gay </br> nabajit rohan er ta mukh e nay</p>",
 		true,
 	)
 
@@ -67,23 +71,13 @@ func TestSendMailWithHtml(t *testing.T) {
 }
 
 func TestSendMailWithAttachment(t *testing.T) {
-	email := os.Getenv("TEST_EMAIL")
-	password := os.Getenv("TEST_EMAIL_PASSWORD")
-	recivers := os.Getenv("TEST_EMAIL_RECIVERS")
+	creds := getTestCreds()
 
-	reciversList := strings.Split(recivers, ",")
-
-	t.Logf("Email: %s", email)
-
-	if email == "" || password == "" {
-		t.Error("Please set TEST_EMAIL and TEST_PASSWORD environment variables to run this test")
-	}
-
-	mserver := NewMailServer(email, password, GMAIL)
+	mserver := NewMailServer(creds.email, creds.password, GMAIL)
 
 	mail := NewMail(
-		email,
-		reciversList,
+		"Kaushik Chowdhury",
+		creds.recivers,
 		"Attachment Test",
 		"Noice to meet ya",
 		false,
@@ -97,3 +91,24 @@ func TestSendMailWithAttachment(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestSendMailWithHtmlFile(t *testing.T) {
+	creds := getTestCreds()
+	mserver := NewMailServer(creds.email, creds.password, GMAIL)
+
+	mail := NewMail(
+		"Kaushik Chowdhury",
+		creds.recivers,
+		"Html File Test",
+		"Noice to meet ya",
+		false,
+	)
+
+	mail.AddHtmlFile("testHtmlFile.html")
+
+		if err := mserver.SendMail(mail); err != nil {
+				t.Error(err)
+		}
+
+}
+
