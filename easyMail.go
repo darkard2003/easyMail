@@ -42,7 +42,7 @@ func NewMailServer(email, password, provider string) *MailServer {
 }
 
 func (s *MailServer) SendMail(mail *Mail) error {
-	b, err := mail.Bytes()
+	b, err := mail.ToBytes()
 	if err != nil {
 		return err
 	}

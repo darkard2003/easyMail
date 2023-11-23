@@ -38,14 +38,6 @@ func (m *Mail) hasAttachments() bool {
 	return len(m.Attachments) > 0
 }
 
-func (m *Mail) hasCc() bool {
-	return len(m.Cc) > 0
-}
-
-func (m *Mail) hasBcc() bool {
-	return len(m.Bcc) > 0
-}
-
 func writeHeader(buf *bytes.Buffer, headers map[string]string) {
 	for k, v := range headers {
 		buf.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
@@ -54,8 +46,8 @@ func writeHeader(buf *bytes.Buffer, headers map[string]string) {
 
 func writeAttachment(buf *bytes.Buffer, filename string, data []byte, boundary string) {
 	buf.WriteString(fmt.Sprintf("\r\n--%s\r\n", boundary))
-	buf.WriteString(fmt.Sprintf("Content-Type: application/octet-stream\r\n"))
-	buf.WriteString(fmt.Sprintf("Content-Transfer-Encoding: base64\r\n"))
+	buf.WriteString("Content-Type: application/octet-stream\r\n")
+	buf.WriteString("Content-Transfer-Encoding: base64\r\n")
 	buf.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", filename))
 	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
 	base64.StdEncoding.Encode(b64, data)
@@ -175,15 +167,18 @@ func (m *Mail) AddAttachmentAll(paths []string) error {
 
 }
 
-func (m *Mail) Raw() string {
-	buf, _ := m.Bytes()
-	return string(buf)
+func (m *Mail) Raw() (string, error) {
+	buf, err := m.ToBytes()
+	if err != nil {
+		return "", err
+	}
+	return string(buf), nil
 }
 
-func (m *Mail) Bytes() ([]byte, error) {
+func (m *Mail) ToBytes() ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
 
-	headers := make(map[string]string, len(m.Headers)+4)
+	headers := make(map[string]string, len(m.Headers)+7)
 
 	for k, v := range m.Headers {
 		headers[k] = v
