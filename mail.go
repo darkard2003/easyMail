@@ -83,31 +83,45 @@ func NewMail(
 	}
 }
 
-func (m *Mail) AttachHtml(html string) {
-	m.Body = html
-	m.isHtml = true
-}
-
-func (m *Mail) AttachText(text string) {
-	m.Body = text
-	m.isHtml = false
-}
-
-func (m *Mail) AddHtmlFile(path string) error {
-	fullpath, err := filepath.Abs(path)
+func getFile(filename string) ([]byte, error) {
+	f, err := os.Open(filename)
 	if err != nil {
-		return err
-	}
-	f, e := os.Open(fullpath)
-	if e != nil {
-		return e
+		return []byte(""), err
 	}
 	defer f.Close()
 	b := new(bytes.Buffer)
 	if _, err := b.ReadFrom(f); err != nil {
+		return []byte(""), err
+	}
+	return b.Bytes(), nil
+}
+
+func (m *Mail) AttachTextFile(src string) error {
+
+	if !strings.HasSuffix(src, ".txt") {
+		return fmt.Errorf("file %s is not a text file", src)
+	}
+
+	b, err := getFile(src)
+	if err != nil {
 		return err
 	}
-	m.AttachHtml(b.String())
+	m.Body = string(b)
+	m.isHtml = false
+	return nil
+
+}
+
+func (m *Mail) AddHtmlFile(path string) error {
+	if !strings.HasSuffix(path, ".html") {
+		return fmt.Errorf("file %s is not a html file", path)
+	}
+	b, err := getFile(path)
+	if err != nil {
+		return err
+	}
+	m.Body = string(b)
+	m.isHtml = true
 	return nil
 }
 
@@ -161,26 +175,9 @@ func (m *Mail) AddAttachmentAll(paths []string) error {
 
 }
 
-func (m *Mail) ToRFC822() (string, error) {
-	headers := make([]string, 0, len(m.Headers)+4)
-
-	// Add common headers
-	headers = append(headers, fmt.Sprintf("From: %s", m.From))
-	headers = append(headers, fmt.Sprintf("To: %s", strings.Join(m.To, ", ")))
-	headers = append(headers, fmt.Sprintf("Subject: %s", m.Subject))
-
-	// Add Content-Type header based on IsHtml flag
-
-	// Add custom headers
-	for k, v := range m.Headers {
-		headers = append(headers, fmt.Sprintf("%s: %s", k, v))
-	}
-
-	// Join all headers together, separate with CRLF, add CRLF at the end to separate headers from body
-	headersStr := strings.Join(headers, "\r\n") + "\r\n\r\n"
-
-	// Return headers + body
-	return headersStr + m.Body, nil
+func (m *Mail) Raw() string {
+	buf, _ := m.Bytes()
+	return string(buf)
 }
 
 func (m *Mail) Bytes() ([]byte, error) {
