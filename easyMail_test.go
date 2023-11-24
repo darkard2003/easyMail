@@ -77,7 +77,7 @@ func TestSendMailWithAttachment(t *testing.T) {
 
 	mail := NewMail(
 		"Kaushik Chowdhury",
-		creds.recivers,
+		[]string{creds.email},
 		"Attachment Test",
 		"Noice to meet ya",
 		false,
@@ -106,9 +106,8 @@ func TestSendMailWithHtmlFile(t *testing.T) {
 
 	mail.AddHtmlFile("testHtmlFile.html")
 
-		if err := mserver.SendMail(mail); err != nil {
-				t.Error(err)
-		}
+	if err := mserver.SendMail(mail); err != nil {
+		t.Error(err)
+	}
 
 }
-
